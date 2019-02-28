@@ -1,0 +1,8 @@
+{
+  "name": "Web-Based-Chatting-Room",
+  "version": "1.0.0",
+  "description": "SENG 513 Assignment 3",
+  "dependencies": {
+    "express": "^4.16.4"
+  }
+}
