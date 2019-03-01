@@ -3,11 +3,49 @@
     <head>
         <title>SENG 513 Chat Room</title>
         <link rel="stylesheet" href="style.css" />
+        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
     </head>
     <body>
-        <ul id="messages"></ul>
+    <div id="wrapper">
+        <div class="row">
+            <div class="msg-container">
+                <header>
+                    <h3>You are</h3>
+                </header>
+                <ul id="chat-history"></ul>
+            </div>
+            <div class="user-container">
+                <header>
+                    <h3>Online Users</h3>
+                </header>
+                <ul id="online-users"></ul>
+            </div>
+        </div>
         <form action="">
-            <input id="m" autocomplete="off" /><button>Send</button>
+            <input id="msg-input" autocomplete="off" /><button>Send</button>
         </form>
+    </div>
     </body>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <script>
+        $(function () {
+            let socket = io();
+            let nickname = "User1";
+
+            $('form').submit(function(e){
+                e.preventDefault(); // prevent reloading page
+                socket.emit('chat message', $('#msg-input').val());
+                $('#msg-input').val('');
+                return false;
+            });
+            socket.on('chat message', function(timestamp, msg){
+                let date = new Date(timestamp);
+                let date_str = date.toTimeString().split(" ");
+                let display_msg = date_str[0] + " " + nickname + ": " + msg;
+                $('#chat-history').append($('<li>').text(display_msg));
+            });
+        });
+    </script>
 </html>
