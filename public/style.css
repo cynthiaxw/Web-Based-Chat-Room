@@ -67,6 +67,7 @@ form button {
     padding: 0;
     height: 95%;
     background-color: grey;
+    vertical-align: bottom;
 }
 
 #chat-history li {
@@ -83,5 +84,15 @@ form button {
 
 #online-users li {
     padding: 5px 10px;
+}
+
+ul {
+    display: flex;
+    flex-direction: column-reverse;
+    overflow: hidden;
+    overflow-y: scroll;
+}
+li {
+    flex: 0 0 auto;
 }
 
