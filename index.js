@@ -54,12 +54,12 @@ io.on('connection', function(socket) {
         let command = data.split(" ");
         if(command.length === 2 && command[0] === "/nick"){
             if(command[1].trim().length === 0){ // Invalid empty name
-                socket.emit('command reply', "[Error] Invalid nickname: nickname cannot be empty.");
+                socket.emit('command reply', {time: timestamp, msg: "[Error] Invalid nickname: nickname cannot be empty."});
                 return;
             }
             // Check if the new name is unique
             if(!isUniqueName(command[1])){
-                socket.emit('command reply', "[Error] Invalid nickname: not unique.");
+                socket.emit('command reply', {time: timestamp, msg: "[Error] Invalid nickname: not unique."});
                 return;
             }
             // Change the name
@@ -77,13 +77,28 @@ io.on('connection', function(socket) {
             }
             io.emit('update chatLog', chatLog);
             // Emit success message
-            socket.emit('command reply', "[Done] Successfully changed nickname.");
+            socket.emit('command reply', {time: timestamp, msg: "[Done] Successfully changed nickname."});
         }else if(command.length === 2 && command[0] === "/nickcolor"){
-            if(parseInt("0x" + command[1]) > 0xFFFFFF){
-                socket.emit('command reply', "[Error] Invalid Hex code: color should be RRGGBB.");
+            if(command[1].length !== 6 || parseInt("0x" + command[1]) > 0xFFFFFF){
+                socket.emit('command reply', {time: timestamp, msg: "[Error] Invalid Hex code: color should be RRGGBB."});
                 return;
             }
-            socket.emit('command reply', "[Done] Successfully changed color.");
+            // Change the color
+            let newColor = "#" + command[1];
+            users[user_index].color = newColor;
+            socket.emit('assign nickname', {username: user.username, color: newColor});
+            // Update user list
+            io.emit('update user list', users);
+            // Update chatLog
+            for(i=0; i<chatLog.length; i++){
+                if(chatLog[i].username === user.username){
+                    chatLog[i].color = newColor;
+                    console.log(i);
+                }
+            }
+            io.emit('update chatLog', chatLog);
+            // Emit success message
+            socket.emit('command reply', {time: timestamp, msg: "[Done] Successfully changed color."});
         }else{
             let msgWrap = {
                 time: timestamp,

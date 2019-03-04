@@ -69,6 +69,9 @@ $(function () {
     });
 
     socket.on('command reply', function(data){
-        $chatHistory.prepend("<li>Server: " + data + "</li>");
+        console.log(data);
+        let date = new Date(data.time);
+        let date_str = date.toTimeString().split(" ");
+        $chatHistory.prepend("<li><a style='color: #000000'>" + date_str[0] + " Server: " + data.msg + "</a></li>");
     })
 });
