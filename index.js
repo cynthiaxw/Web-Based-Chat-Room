@@ -14,21 +14,6 @@ var cookieSet = false;
 app.use(express.static('public'));
 app.use(cookieParser());
 
-// app.get('/', function(req, res){
-//     console.log("http request");
-//     res.sendFile(__dirname + '/public/index.html');
-// });
-
-function findUserByCookie(value) {
-    for(i=0; i<allUsers.length; i++){
-        console.log(i + ": " + allUsers[i].username);
-        if(value === allUsers[i].username){
-            return i;
-        }
-    }
-    return -1;
-}
-
 function findUserBySocket(socketid) {
     for(i=0; i<users.length; i++){
         if(users[i].id === socketid){
@@ -48,8 +33,8 @@ function findUserByName(name) {
 }
 
 function isUniqueName(name) {
-    for(i=0; i<users.length; i++){
-        if(name === users[i].username){
+    for(i=0; i<allUsers.length; i++){
+        if(name === allUsers[i].username){
             return false;
         }
     }
@@ -81,37 +66,38 @@ function createNewUserOnSocket(socket){
     io.emit('update user list', users);
 }
 
+function updateAllUserByName(oldName, newName){
+    for(i=0; i<allUsers.length; i++){
+        if(allUsers[i].username === oldName){
+            allUsers[i].username = newName;
+            return;
+        }
+    }
+}
+
+function updateAllUserByColor(name, newColor){
+    for(i=0; i<allUsers.length; i++){
+        if(allUsers[i].username = name){
+            allUsers[i].color = newColor;
+            return;
+        }
+    }
+}
+
 io.on('connection', function(socket) {  // A new connection to the server
-    console.log("new connection");
-    //
-    // if(serverRestart) { // Newly started server
-    //     console.log("newly started server");
-    //     createNewUserOnSocket(socket);
-    //     serverRestart = false;
-    // } else {    // Check for cookies
-    //     console.log("check for cookie");
-    //     socket.on('send cookie', function(cookie){
-    //         let index = findUserByCookie(cookie);
-    //         console.log("cookie received: "+cookie);
-    //         if(index === -1){   // not find cookie
-    //             createNewUserOnSocket(socket);
-    //         }else {
-    //             new_user = userCookies[index].user;
-    //         }
-    //     });
-    // }
+
     var new_user = {};
-    socket.on('get cookie', function(username, fn){
-        if(serverRestart){ // if the server restarts (which means there's nothing in the
-            // Assign color and name
-            let rdmcolor = "hsl(" + (totalUserCount * 77 % 360) + ",100%,50%)";
-            new_user.color = rdmcolor;
-            totalUserCount ++;
-            let nickname = "User#" + totalUserCount.toString();
-            new_user.username = nickname;
-            console.log("Server Restart");
-            serverRestart = false;
-        }else{
+    socket.on('get cookie', function(username, color, fn){
+        // if(serverRestart){ // if the server restarts (which means there's nothing in the
+        //     // Assign color and name
+        //     let rdmcolor = "hsl(" + (totalUserCount * 77 % 360) + ",100%,50%)";
+        //     new_user.color = rdmcolor;
+        //     totalUserCount ++;
+        //     let nickname = "User#" + totalUserCount.toString();
+        //     new_user.username = nickname;
+        //     console.log("Server Restart");
+        //     serverRestart = false;
+        // }else{
             // Check the cookie from client
             if(!username){ // create a new user name
                 // Assign color and name
@@ -122,13 +108,12 @@ io.on('connection', function(socket) {  // A new connection to the server
                 new_user.username = nickname;
                 // console.log("userCookie undefined.");
             }else {
-                // console.log("userCookie get: " + username);
-                console.log("index: " + findUserByCookie(username));
-                new_user = allUsers[findUserByCookie(username)];
+                new_user.username = username;
+                new_user.color = color;
             }
-        }
+        // }
 
-        fn(new_user.username);
+        fn({n: new_user.username, c: new_user.color});
         new_user.id = socket.id;
         users.push(new_user);
         allUsers.push(new_user);
@@ -139,18 +124,6 @@ io.on('connection', function(socket) {  // A new connection to the server
         // Send chat log to new user
         socket.emit('new chatLog', chatLog);
     });
-
-
-    // // Assign color and name
-    // let rdmcolor = "hsl(" + (totalUserCount * 77 % 360) + ",100%,50%)";
-    // totalUserCount ++;
-    // let nickname = "User#" + totalUserCount.toString();
-    // new_user = {
-    //     username: nickname,
-    //     color: rdmcolor,
-    //     id: socket.id
-    // };
-    // users.push(new_user);
 
 
     // Server received new message from clients
@@ -182,6 +155,8 @@ io.on('connection', function(socket) {  // A new connection to the server
             socket.emit('assign nickname', {username: command[1], color: users[user_index].color});
             // Update user list
             io.emit('update user list', users);
+            // Update allUser[]
+            updateAllUserByName(oldname, command[1]);
             // Update chatLog
             for (i = 0; i < chatLog.length; i++) {
                 if (chatLog[i].username === oldname) {
@@ -205,6 +180,8 @@ io.on('connection', function(socket) {  // A new connection to the server
             socket.emit('assign nickname', {username: user.username, color: newColor});
             // Update user list
             io.emit('update user list', users);
+            // Update allUser[]
+            updateAllUserByColor(user.name, newColor);
             // Update chatLog
             for (i = 0; i < chatLog.length; i++) {
                 if (chatLog[i].username === user.username) {

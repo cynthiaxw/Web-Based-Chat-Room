@@ -4,38 +4,18 @@ $(function () {
     let $chatHistory =  $('#chat-history');
     let $onlineUsers = $('#online-users');
     let $msgInput = $('#msg-input');
-    let cookie_set = false;
-
-    function findCookieByName(name){
-        let decodedCookie = decodeURIComponent(document.cookie);
-        let chunks = decodedCookie.split(';');
-        for(i=0; i<chunks.length; i++){
-            let str = chunks[i].trim(); // trim the spaces
-            if(str === name) {
-                return str.substring(name.length, str.length);
-            }
-        }
-        return "";
-    }
 
     // get the cookie
-    let myCookie = $.cookie('user_info');
+    let myName = $.cookie('user_name');
+    let myColor = $.cookie('user_color')
     socket.on('connect', function(){
         console.log("connection");
-        console.log(myCookie);
-        socket.emit('get cookie', myCookie, function(data){
-           $.cookie('user_info', data);
+        socket.emit('get cookie', myName, myColor, function(data){
+           $.cookie('user_name', data.n);
+           $.cookie('user_color', data.c);
            console.log(data);
         });
     });
-    // if(cookie_set){ // New connection, send cookies to the server
-    //     let cookieName = findCookieByName("User_Login=");
-    //     if(cookieName !== "") { // send the cookie
-    //         socket.emit('send cookie', cookieName);
-    //     }else {
-    //         console.log("cookie has not been set");
-    //     }
-    // }
 
     $('form').submit(function(e){
         e.preventDefault(); // prevent reloading page
@@ -43,14 +23,6 @@ $(function () {
         $msgInput.val('');
         return false;
     });
-
-    // socket.on('set cookie', function(key){
-    //     let appendCookie = "User_Login=" + key.toString();
-    //     document.cookie += appendCookie;
-    //     console.log(document.cookie);
-    //     console.log("key received: " +  key);
-    //     cookie_set = true;
-    // });
 
     socket.on('new message', function(msgWrap){
         let date = new Date(msgWrap.time);
@@ -68,6 +40,8 @@ $(function () {
     });
 
     socket.on('assign nickname', function(data){
+        $.cookie('user_name', data.username);
+        $.cookie('user_color', data.color);
         nickname = data.username;
         $('#welcome-msg')[0].innerHTML = "Welcome, " + "<a style='color: " + data.color + "'>" +
             data.username + "</a>";
