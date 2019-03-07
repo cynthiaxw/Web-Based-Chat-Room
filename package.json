@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "SENG 513 Assignment 3",
   "dependencies": {
+    "cookie-parser": "^1.4.4",
     "express": "^4.16.4",
+    "express-session": "^1.15.6",
     "socket.io": "^2.2.0"
   }
 }
