@@ -39,31 +39,6 @@ function isUniqueName(name) {
     return true;
 }
 
-function createNewUserOnSocket(socket){
-    let new_key = Math.floor(Math.random() *10000) + 1;
-    socket.emit('set cookie', new_key);
-
-    // Assign color and name
-    let rdmcolor = "hsl(" + (totalUserCount * 77 % 360) + ",100%,50%)";
-    totalUserCount ++;
-    let nickname = "User#" + totalUserCount.toString();
-    new_user = {
-        username: nickname,
-        color: rdmcolor,
-        id: null
-    };
-    userCookies.push({
-        cookie: new_key,
-        user: new_user
-    });
-
-    new_user.id = socket.id;
-    users.push(new_user);
-    console.log(new_user.username + " has connected");
-    socket.emit('assign nickname', {username: new_user.username, color: new_user.color});
-    io.emit('update user list', users);
-}
-
 function updateAllUserByName(oldName, newName){
     for(i=0; i<allUsers.length; i++){
         if(allUsers[i].username === oldName){
@@ -132,7 +107,7 @@ io.on('connection', function(socket) {  // A new connection to the server
             if (!isUniqueName(command[1])) {
                 socket.emit('command reply', {
                     time: timestamp,
-                    msg: "[Error] Nickname \"" + command[1] + "has been taken."
+                    msg: "[Error] Nickname \"" + command[1] + "\" has been taken."
                 });
                 return;
             }
